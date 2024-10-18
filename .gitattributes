@@ -37,3 +37,4 @@ imgs/vocoder/gan/MSSBCQTD.png filter=lfs diff=lfs merge=lfs -text
 models/codec/facodec/modules/JDC/bst.t7 filter=lfs diff=lfs merge=lfs -text
 models/tts/maskgct/g2p/sources/chinese_lexicon.txt filter=lfs diff=lfs merge=lfs -text
 models/tts/maskgct/wav/prompt.wav filter=lfs diff=lfs merge=lfs -text
+visualization/SingVisio/System_Introduction_of_SingVisio_V2.pdf filter=lfs diff=lfs merge=lfs -text
