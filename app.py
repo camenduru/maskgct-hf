@@ -19,7 +19,7 @@ from transformers import SeamlessM4TFeatureExtractor
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
-device = torch.device("cuda" if torch.cuda.is_available() else "CPU"
+device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
 
 
 
