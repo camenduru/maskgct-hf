@@ -11,7 +11,8 @@ encodec
 black==24.1.1
 phonemizer
 g2p_en
-accelerate==0.31.0
+accelerate==0.24.1
+safetensors==0.4.3
 funasr
 zhconv
 zhon
