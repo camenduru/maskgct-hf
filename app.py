@@ -3,6 +3,7 @@ import torch
 import safetensors
 from huggingface_hub import hf_hub_download
 import soundfile as sf
+import os
 
 import numpy as np
 import librosa
@@ -18,7 +19,8 @@ from transformers import SeamlessM4TFeatureExtractor
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "CPU"
+
 
 
 def g2p_(text, language):
