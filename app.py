@@ -327,6 +327,18 @@ def inference(
     sf.write(save_path, recovered_audio, 24000)
     return save_path
 
+# Load models once
+(
+    semantic_model,
+    semantic_mean,
+    semantic_std,
+    semantic_codec,
+    codec_encoder,
+    codec_decoder,
+    t2s_model,
+    s2a_model_1layer,
+    s2a_model_full,
+) = load_models()
 
 # Language list
 language_list = ["en", "zh", "ja", "ko", "fr", "de"]
