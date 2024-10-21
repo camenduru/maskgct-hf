@@ -302,7 +302,7 @@ def maskgct_inference(
     return recovered_audio
 
 
-@torch.no_grad()
+@spaces.GPU
 def inference(
     prompt_wav,
     prompt_text,
