@@ -19,23 +19,23 @@ from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 
 from transformers import SeamlessM4TFeatureExtractor
 
-import whisperx
+# import whisperx
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
 
-whisper_model = whisperx.load_model("small", "cuda", compute_type="int8")
+# whisper_model = whisperx.load_model("small", "cuda", compute_type="int8")
 
-@torch.no_grad()
-def get_prompt_text(speech_16k):
-    asr_result = whisper_model.transcribe(speech_16k)
-    print("asr_result:", asr_result)
-    language = asr_result["language"]
-    #text = asr_result["text"] # whisper asr result
-    text = asr_result["segments"][0]["text"]
-    print("prompt text:", text)
-    return text, language
+# @torch.no_grad()
+# def get_prompt_text(speech_16k):
+#     asr_result = whisper_model.transcribe(speech_16k)
+#     print("asr_result:", asr_result)
+#     language = asr_result["language"]
+#     #text = asr_result["text"] # whisper asr result
+#     text = asr_result["segments"][0]["text"]
+#     print("prompt text:", text)
+#     return text, language
 
 
 def g2p_(text, language):
@@ -295,8 +295,8 @@ def maskgct_inference(
     speech_16k = librosa.load(prompt_speech_path, sr=16000)[0]
     speech = librosa.load(prompt_speech_path, sr=24000)[0]
 
-    if prompt_text is None:
-        prompt_text, language = get_prompt_text(prompt_speech_path)
+    # if prompt_text is None:
+    #     prompt_text, language = get_prompt_text(prompt_speech_path)
     
     combine_semantic_code, _ = text2semantic(
         device,
@@ -369,7 +369,7 @@ iface = gr.Interface(
     fn=inference,
     inputs=[
         gr.Audio(label="Upload Prompt Wav", type="filepath"),
-        gr.Textbox(label="Prompt Text, if None, the system will use an ASR model to detect prompt text and prompt language.", value=None),
+        gr.Textbox(label="Prompt Text"),
         gr.Textbox(label="Target Text"),
         gr.Number(
             label="Target Duration (in seconds), if the target duration is less than 0, the system will estimate a duration.", value=-1
