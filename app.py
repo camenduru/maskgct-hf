@@ -223,12 +223,12 @@ def load_models():
     semantic_code_ckpt = hf_hub_download(
         "amphion/MaskGCT", filename="semantic_codec/model.safetensors"
     )
-    codec_encoder_ckpt = hf_hub_download(
-        "amphion/MaskGCT", filename="acoustic_codec/model.safetensors"
-    )
-    codec_decoder_ckpt = hf_hub_download(
-        "amphion/MaskGCT", filename="acoustic_codec/model_1.safetensors"
-    )
+    # codec_encoder_ckpt = hf_hub_download(
+    #     "amphion/MaskGCT", filename="acoustic_codec/model.safetensors"
+    # )
+    # codec_decoder_ckpt = hf_hub_download(
+    #     "amphion/MaskGCT", filename="acoustic_codec/model_1.safetensors"
+    # )
     t2s_model_ckpt = hf_hub_download(
         "amphion/MaskGCT", filename="t2s_model/model.safetensors"
     )
@@ -240,8 +240,10 @@ def load_models():
     )
 
     safetensors.torch.load_model(semantic_codec, semantic_code_ckpt)
-    safetensors.torch.load_model(codec_encoder, codec_encoder_ckpt)
-    safetensors.torch.load_model(codec_decoder, codec_decoder_ckpt)
+    # safetensors.torch.load_model(codec_encoder, codec_encoder_ckpt)
+    # safetensors.torch.load_model(codec_decoder, codec_decoder_ckpt)
+    accelerate.load_checkpoint_and_dispatch(codec_encoder, "./acoustic_codec/model.safetensors")
+    accelerate.load_checkpoint_and_dispatch(codec_decoder, "./acoustic_codec/model_1.safetensors")
     safetensors.torch.load_model(t2s_model, t2s_model_ckpt)
     safetensors.torch.load_model(s2a_model_1layer, s2a_1layer_ckpt)
     safetensors.torch.load_model(s2a_model_full, s2a_full_ckpt)
