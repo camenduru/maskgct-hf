@@ -122,7 +122,7 @@ def text2semantic(
 
     target_phone_id = g2p_(target_text, target_language)[1]
 
-    if target_len is None:
+    if target_len < 0:
         target_len = int(
             (len(prompt_speech) * len(target_phone_id) / len(prompt_phone_id))
             / 16000
@@ -276,7 +276,7 @@ def maskgct_inference(
     n_timesteps_s2a=[25, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     cfg_s2a=2.5,
     rescale_cfg_s2a=0.75,
-    device=torch.device("cuda:5"),
+    device=torch.device("cuda:0"),
 ):
     speech_16k = librosa.load(prompt_speech_path, sr=16000)[0]
     speech = librosa.load(prompt_speech_path, sr=24000)[0]
@@ -355,7 +355,7 @@ iface = gr.Interface(
         gr.Textbox(label="Prompt Text"),
         gr.Textbox(label="Target Text"),
         gr.Number(
-            label="Target Duration (in seconds)", value=None
+            label="Target Duration (in seconds)", value=-1
         ),  # Removed 'optional=True'
         gr.Slider(
             label="Number of Timesteps", minimum=15, maximum=100, value=25, step=1
