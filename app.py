@@ -1,3 +1,4 @@
+import spaces
 import gradio as gr
 import torch
 import safetensors
