@@ -355,7 +355,7 @@ iface = gr.Interface(
         gr.Textbox(label="Prompt Text"),
         gr.Textbox(label="Target Text"),
         gr.Number(
-            label="Target Duration (in seconds)", value=-1
+            label="Target Duration (in seconds), if the target duration is less than 0, the system will estimate a duration.", value=-1
         ),  # Removed 'optional=True'
         gr.Slider(
             label="Number of Timesteps", minimum=15, maximum=100, value=25, step=1
