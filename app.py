@@ -28,11 +28,21 @@ device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
 
 whisper_model = whisper.load_model("turbo")
 
-def detect_speech_language(speech_16k):
-    return whisper_model.detect_language(speech_16k)
+def detect_speech_language(speech_file):
+    # load audio and pad/trim it to fit 30 seconds
+    audio = whisper.load_audio(speech_file)
+    audio = whisper.pad_or_trim(audio)
+
+    # make log-Mel spectrogram and move to the same device as the model
+    mel = whisper.log_mel_spectrogram(audio, n_mels=128).to(whisper_model.device)
+
+    # detect the spoken language
+    _, probs = whisper_model.detect_language(mel)
+    return max(probs, key=probs.get)
+
 
 def detect_text_language(text):
-    langid.classify(text)[0]
+    return langid.classify(text)[0]
 
 @torch.no_grad()
 def get_prompt_text(speech_16k, language):
@@ -41,7 +51,6 @@ def get_prompt_text(speech_16k, language):
     short_prompt_end_ts = 0.0
 
     asr_result = whisper_model.transcribe(speech_16k, language=language)
-    print("asr_result:", asr_result)
     full_prompt_text = asr_result["text"] # whisper asr result
     #text = asr_result["segments"][0]["text"] # whisperx asr result
     shot_prompt_text = ""
@@ -51,8 +60,6 @@ def get_prompt_text(speech_16k, language):
         short_prompt_end_ts = segment['end']
         if short_prompt_end_ts >= 4:
             break
-    print("full prompt text:", full_prompt_text, " shot_prompt_text:", shot_prompt_text,
-          "short_prompt_end_ts:", short_prompt_end_ts)
     return full_prompt_text, shot_prompt_text, short_prompt_end_ts
 
 
@@ -310,7 +317,7 @@ def maskgct_inference(
     speech_16k = librosa.load(prompt_speech_path, sr=16000)[0]
     speech = librosa.load(prompt_speech_path, sr=24000)[0]
 
-    prompt_language = detect_speech_language(speech_16k)
+    prompt_language = detect_speech_language(prompt_speech_path)
     full_prompt_text, short_prompt_text, shot_prompt_end_ts = get_prompt_text(prompt_speech_path,
                                                                               prompt_language)
     # use the first 4+ seconds wav as the prompt in case the prompt wav is too long
@@ -321,7 +328,7 @@ def maskgct_inference(
         device,
         speech_16k,
         short_prompt_text,
-        language,
+        prompt_language,
         target_text,
         target_language,
         target_len,
@@ -393,7 +400,15 @@ iface = gr.Interface(
     outputs=gr.Audio(label="Generated Audio"),
     title="MaskGCT TTS Demo",
     description="""
-    [![arXiv](https://img.shields.io/badge/arXiv-Paper-COLOR.svg)](https://arxiv.org/abs/2409.00750) [![hf](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-model-yellow)](https://huggingface.co/amphion/maskgct) [![hf](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-demo-pink)](https://huggingface.co/spaces/amphion/maskgct) [![readme](https://img.shields.io/badge/README-Key%20Features-blue)](https://github.com/open-mmlab/Amphion/tree/main/models/tts/maskgct)
+    ## MaskGCT: Zero-Shot Text-to-Speech with Masked Generative Codec Transformer
+    
+    [![arXiv](https://img.shields.io/badge/arXiv-Paper-COLOR.svg)](https://arxiv.org/abs/2409.00750)
+    
+    [![hf](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-model-yellow)](https://huggingface.co/amphion/maskgct)
+    
+    [![hf](https://img.shields.io/badge/%F0%9F%A4%97%20HuggingFace-demo-pink)](https://huggingface.co/spaces/amphion/maskgct)
+    
+    [![readme](https://img.shields.io/badge/README-Key%20Features-blue)](https://github.com/open-mmlab/Amphion/tree/main/models/tts/maskgct)
     """
 )
 
