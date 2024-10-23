@@ -26,8 +26,6 @@ processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-whisper_model = whisper.load_model("turbo")
-
 def detect_speech_language(speech_file):
     # load audio and pad/trim it to fit 30 seconds
     audio = whisper.load_audio(speech_file)
@@ -380,6 +378,8 @@ def inference(
     s2a_model_1layer,
     s2a_model_full,
 ) = load_models()
+
+whisper_model = whisper.load_model("turbo")
 
 # Language list
 language_list = ["en", "zh", "ja", "ko", "fr", "de"]
