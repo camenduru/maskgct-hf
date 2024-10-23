@@ -31,3 +31,4 @@ onnxruntime
 pyopenjtalk
 pykakasi
 openai-whisper
+langid
