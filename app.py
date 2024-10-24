@@ -1,8 +1,8 @@
 import accelerate
-import gradio as gr
 import langid
 import spaces
 
+import gradio as gr
 import torch
 import safetensors
 from huggingface_hub import hf_hub_download
