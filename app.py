@@ -1,7 +1,12 @@
+import subprocess
+import sys
+# spaces is not compatible with gradio 5.x, here install 4.x forcely
+subprocess.check_call([sys.executable, "-m", "pip", "install", "gradio==4.37.1"])
+
 import langid
 import spaces
 import accelerate
-
+import gradio as gr
 import torch
 import safetensors
 from huggingface_hub import hf_hub_download
@@ -19,12 +24,8 @@ from utils.util import load_config
 from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 
 from transformers import SeamlessM4TFeatureExtractor
-
 import whisper
-import subprocess
-import sys
-subprocess.check_call([sys.executable, "-m", "pip", "install", "gradio==4.37.1"])
-import gradio as gr
+
 print("gradio version:", gr.__version__)
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
