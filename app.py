@@ -18,17 +18,23 @@ from utils.util import load_config
 from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 
 from transformers import SeamlessM4TFeatureExtractor
+import py3langid as langid
 
-import whisper
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
-
 device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
-whisper_model = whisper.load_model("turbo")
+whisper_model = None
+output_file_name_idx = 0
+
+def detect_text_language(text):
+    return langid.classify(text)[0]
 
 def detect_speech_language(speech_file):
+    import whisper
+    global whisper_model
+    if whisper_model == None:
+        whisper_model = whisper.load_model("turbo")
     # load audio and pad/trim it to fit 30 seconds
-    whisper_model = whisper.load_model("turbo")
     audio = whisper.load_audio(speech_file)
     audio = whisper.pad_or_trim(audio)
 
@@ -46,6 +52,10 @@ def get_prompt_text(speech_16k, language):
     shot_prompt_text = ""
     short_prompt_end_ts = 0.0
 
+    import whisper
+    global whisper_model
+    if whisper_model == None:
+        whisper_model = whisper.load_model("turbo")
     asr_result = whisper_model.transcribe(speech_16k, language=language)
     full_prompt_text = asr_result["text"] # whisper asr result
     #text = asr_result["segments"][0]["text"] # whisperx asr result
@@ -301,7 +311,6 @@ def load_models():
 def maskgct_inference(
     prompt_speech_path,
     target_text,
-    target_language="en",
     target_len=None,
     n_timesteps=25,
     cfg=2.5,
@@ -320,6 +329,8 @@ def maskgct_inference(
     # use the first 4+ seconds wav as the prompt in case the prompt wav is too long
     speech = speech[0: int(shot_prompt_end_ts * 24000)]
     speech_16k = speech_16k[0: int(shot_prompt_end_ts*16000)]
+
+    target_language = detect_text_language(target_text)
     combine_semantic_code, _ = text2semantic(
         device,
         speech_16k,
@@ -351,19 +362,19 @@ def inference(
     target_text,
     target_len,
     n_timesteps,
-    target_language,
 ):
-    save_path = "./output/output.wav"
+    global output_file_name_idx
+    save_path = f"./output/output_{output_file_name_idx}.wav"
     os.makedirs("./output", exist_ok=True)
     recovered_audio = maskgct_inference(
         prompt_wav,
         target_text,
-        target_language,
         target_len=target_len,
         n_timesteps=int(n_timesteps),
         device=device,
     )
     sf.write(save_path, recovered_audio, 24000)
+    output_file_name_idx = (output_file_name_idx + 1) % 10
     return save_path
 
 # Load models once
@@ -394,7 +405,6 @@ iface = gr.Interface(
         gr.Slider(
             label="Number of Timesteps", minimum=15, maximum=100, value=25, step=1
         ),
-        gr.Dropdown(label="Target Language", choices=language_list, value="en"),
     ],
     outputs=gr.Audio(label="Generated Audio"),
     title="MaskGCT TTS Demo",
