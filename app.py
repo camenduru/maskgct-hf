@@ -1,7 +1,7 @@
 import subprocess
 import sys
 # spaces is not compatible with gradio 5.x, here install 4.x forcely
-subprocess.check_call([sys.executable, "-m", "pip", "install", "gradio==4.37.1"])
+subprocess.check_call([sys.executable, "-m", "pip", "install", "spaces==0.30.0"])
 
 import langid
 import spaces
@@ -26,7 +26,6 @@ from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 from transformers import SeamlessM4TFeatureExtractor
 import whisper
 
-print("gradio version:", gr.__version__)
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
