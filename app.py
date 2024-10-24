@@ -1,4 +1,3 @@
-import spaces
 import accelerate
 import gradio as gr
 import torch
@@ -21,10 +20,13 @@ from transformers import SeamlessM4TFeatureExtractor
 
 import whisper
 import langid
+import spaces
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+output_file_name_idx = 0
 
 def detect_speech_language(speech_file):
     # load audio and pad/trim it to fit 30 seconds
@@ -354,7 +356,8 @@ def inference(
     target_len,
     n_timesteps,
 ):
-    save_path = "./output/output.wav"
+    global output_file_name_idx
+    save_path = f"./output/output_{output_file_name_idx}.wav"
     os.makedirs("./output", exist_ok=True)
     recovered_audio = maskgct_inference(
         prompt_wav,
@@ -364,6 +367,8 @@ def inference(
         device=device,
     )
     sf.write(save_path, recovered_audio, 24000)
+    output_file_name_idx = output_file_name_idx + 1
+    output_file_name_idx = output_file_name_idx % 10
     return save_path
 
 # Load models once
