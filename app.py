@@ -29,6 +29,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 output_file_name_idx = 0
 
+print("gradio version:", gr.__version__)
+
 def detect_speech_language(speech_file):
     # load audio and pad/trim it to fit 30 seconds
     audio = whisper.load_audio(speech_file)
