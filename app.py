@@ -1,6 +1,6 @@
-import accelerate
 import langid
 import spaces
+import accelerate
 
 import gradio as gr
 import torch

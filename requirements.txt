@@ -27,7 +27,7 @@ omegaconf
 pyworld
 py3langid==0.2.2
 LangSegment
-onnxruntime
+onnxruntime-gpu
 pyopenjtalk
 pykakasi
 openai-whisper
