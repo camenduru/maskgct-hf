@@ -5,7 +5,7 @@ ruamel.yaml
 tqdm 
 tensorboard
 tensorboardX
-torch==2.0.1
+torch
 transformers===4.41.1
 encodec
 black==24.1.1
@@ -27,7 +27,7 @@ omegaconf
 pyworld
 py3langid==0.2.2
 LangSegment
-onnxruntime-gpu
+onnxruntime
 pyopenjtalk
 pykakasi
 openai-whisper
