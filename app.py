@@ -1,5 +1,8 @@
 import accelerate
 import gradio as gr
+import langid
+import spaces
+
 import torch
 import safetensors
 from huggingface_hub import hf_hub_download
@@ -19,8 +22,6 @@ from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 from transformers import SeamlessM4TFeatureExtractor
 
 import whisper
-import langid
-import spaces
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
