@@ -19,23 +19,44 @@ from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 
 from transformers import SeamlessM4TFeatureExtractor
 
-# import whisperx
+import whisper
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "CPU")
+whisper_model = whisper.load_model("turbo")
 
-# whisper_model = whisperx.load_model("small", "cuda", compute_type="int8")
+def detect_speech_language(speech_file):
+    # load audio and pad/trim it to fit 30 seconds
+    whisper_model = whisper.load_model("turbo")
+    audio = whisper.load_audio(speech_file)
+    audio = whisper.pad_or_trim(audio)
 
-# @torch.no_grad()
-# def get_prompt_text(speech_16k):
-#     asr_result = whisper_model.transcribe(speech_16k)
-#     print("asr_result:", asr_result)
-#     language = asr_result["language"]
-#     #text = asr_result["text"] # whisper asr result
-#     text = asr_result["segments"][0]["text"]
-#     print("prompt text:", text)
-#     return text, language
+    # make log-Mel spectrogram and move to the same device as the model
+    mel = whisper.log_mel_spectrogram(audio, n_mels=128).to(whisper_model.device)
+
+    # detect the spoken language
+    _, probs = whisper_model.detect_language(mel)
+    return max(probs, key=probs.get)
+
+
+@torch.no_grad()
+def get_prompt_text(speech_16k, language):
+    full_prompt_text = ""
+    shot_prompt_text = ""
+    short_prompt_end_ts = 0.0
+
+    asr_result = whisper_model.transcribe(speech_16k, language=language)
+    full_prompt_text = asr_result["text"] # whisper asr result
+    #text = asr_result["segments"][0]["text"] # whisperx asr result
+    shot_prompt_text = ""
+    short_prompt_end_ts = 0.0
+    for segment in asr_result["segments"]:
+        shot_prompt_text = shot_prompt_text +  segment['text']
+        short_prompt_end_ts = segment['end']
+        if short_prompt_end_ts >= 4:
+            break
+    return full_prompt_text, shot_prompt_text, short_prompt_end_ts
 
 
 def g2p_(text, language):
@@ -279,9 +300,7 @@ def load_models():
 @torch.no_grad()
 def maskgct_inference(
     prompt_speech_path,
-    prompt_text,
     target_text,
-    language="en",
     target_language="en",
     target_len=None,
     n_timesteps=25,
@@ -295,14 +314,17 @@ def maskgct_inference(
     speech_16k = librosa.load(prompt_speech_path, sr=16000)[0]
     speech = librosa.load(prompt_speech_path, sr=24000)[0]
 
-    # if prompt_text is None:
-    #     prompt_text, language = get_prompt_text(prompt_speech_path)
-    
+    prompt_language = detect_speech_language(prompt_speech_path)
+    full_prompt_text, short_prompt_text, shot_prompt_end_ts = get_prompt_text(prompt_speech_path,
+                                                                              prompt_language)
+    # use the first 4+ seconds wav as the prompt in case the prompt wav is too long
+    speech = speech[0: int(shot_prompt_end_ts * 24000)]
+    speech_16k = speech_16k[0: int(shot_prompt_end_ts*16000)]
     combine_semantic_code, _ = text2semantic(
         device,
         speech_16k,
-        prompt_text,
-        language,
+        short_prompt_text,
+        prompt_language,
         target_text,
         target_language,
         target_len,
@@ -326,20 +348,16 @@ def maskgct_inference(
 @spaces.GPU
 def inference(
     prompt_wav,
-    prompt_text,
     target_text,
     target_len,
     n_timesteps,
-    language,
     target_language,
 ):
     save_path = "./output/output.wav"
     os.makedirs("./output", exist_ok=True)
     recovered_audio = maskgct_inference(
         prompt_wav,
-        prompt_text,
         target_text,
-        language,
         target_language,
         target_len=target_len,
         n_timesteps=int(n_timesteps),
@@ -369,7 +387,6 @@ iface = gr.Interface(
     fn=inference,
     inputs=[
         gr.Audio(label="Upload Prompt Wav", type="filepath"),
-        gr.Textbox(label="Prompt Text"),
         gr.Textbox(label="Target Text"),
         gr.Number(
             label="Target Duration (in seconds), if the target duration is less than 0, the system will estimate a duration.", value=-1
@@ -377,7 +394,6 @@ iface = gr.Interface(
         gr.Slider(
             label="Number of Timesteps", minimum=15, maximum=100, value=25, step=1
         ),
-        gr.Dropdown(label="Language", choices=language_list, value="en"),
         gr.Dropdown(label="Target Language", choices=language_list, value="en"),
     ],
     outputs=gr.Audio(label="Generated Audio"),
