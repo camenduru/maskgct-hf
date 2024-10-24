@@ -32,3 +32,4 @@ pyopenjtalk
 pykakasi
 openai-whisper
 langid
+gradio==4.37.1
