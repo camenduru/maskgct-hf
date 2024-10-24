@@ -1,6 +1,5 @@
 import langid
 import spaces
-import gradio as gr
 import accelerate
 
 import torch
@@ -22,6 +21,11 @@ from models.tts.maskgct.g2p.g2p_generation import g2p, chn_eng_g2p
 from transformers import SeamlessM4TFeatureExtractor
 
 import whisper
+import subprocess
+import sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "gradio==4.37.1"])
+import gradio as gr
+print("gradio version:", gr.__version__)
 
 processor = SeamlessM4TFeatureExtractor.from_pretrained("facebook/w2v-bert-2.0")
 
@@ -29,7 +33,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 output_file_name_idx = 0
 
-print("gradio version:", gr.__version__)
 
 def detect_speech_language(speech_file):
     # load audio and pad/trim it to fit 30 seconds
